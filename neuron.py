@@ -3,8 +3,8 @@ import random
 
 class neuron:
     def __init__(self , n):
-        self.weights = np.random.rand(n)*random.uniform(-1,1)
-        self.bias = np.random.random()
+        self.weights = [random.uniform(-1,1) for i in range(n)]
+        self.bias = 0
     
     def modifyParams(self, weights , bias):
         self.weights = weights
@@ -37,7 +37,7 @@ class layer:
         input = np.array(input).reshape((-1))
         
         weightedSum = np.dot(self.weightsVector, input)+self.biases
-        activation_value = [max(0,val) for val in weightedSum]
+        activation_value = np.maximum(0,weightedSum)
 
         return activation_value
 
@@ -46,6 +46,8 @@ class layer:
 class model:
     def __init__(self):
         self.layers = []
+        self.activation_for_each_input = []
+        self.losses_for_each_input = []
 
     def add(self , layer):
         
@@ -72,22 +74,20 @@ class model:
 
         if len(self.layers) == 0:
             return "no layers"
-        
-        activation_for_each_input = []
 
         for input in X:
             activation_value = input
             for layer in self.layers:
                 activation_value = layer.activationValue(activation_value)
-                print(activation_value)
+                # print(activation_value)
 
-            activation_for_each_input.append(activation_value)
-        return activation_for_each_input
+            self.activation_for_each_input.append(activation_value)
+            self.losses_for_each_input.append(self.Cost(activation_value , y))
+        
+        return self.activation_for_each_input
     
-    def Loss(self , values , targets):
-        loss = 0
-        for value,target in zip(values,targets):
-            loss += (value-target)**2
+    def Cost(self , values , targets):
+        loss = np.mean((values-targets)**2)
         
         return loss
     
@@ -100,7 +100,7 @@ m.add(layer1)
 m.add(layer2)
 m.add(layer3)
 
-ans = m.fit([[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0]],[0,0,0,1,0,0,0,0,0,0])
-
-print(ans)
+ans = m.fit(np.random.random(size = (30,10)),[0,0,0,1,0])
+loss = m.losses_for_each_input
+print(len(loss))
 

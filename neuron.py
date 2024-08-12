@@ -1,14 +1,10 @@
 import numpy as np
+import random
 
 class neuron:
     def __init__(self , n):
-        self.weights = np.random.rand(n)*4
-        self.bias = np.random.randint(10)
-
-    def weightedSum(self , inputs):
-        z_i = np.dot(inputs , self.weights)
-        
-        return z_i+self.bias
+        self.weights = np.random.rand(n)*random.uniform(-1,1)
+        self.bias = np.random.random()
     
     def modifyParams(self, weights , bias):
         self.weights = weights
@@ -17,6 +13,9 @@ class neuron:
 class layer:
     def __init__(self, n_neurons , input_size = 0):
         self.neurons =[]
+        self.weightsVector = []
+        self.biases = []
+
         self.neuron_count = n_neurons
         self.inputSize = input_size
 
@@ -26,16 +25,21 @@ class layer:
         
         for i in range(self.neuron_count):
             n = neuron(input)
-            self.neurons.append(n)
+
+            self.weightsVector.append(n.weights)
+            self.biases.append(n.bias)
+
+        self.neurons = np.array(self.neurons)
+        self.weightsVector = np.array(self.weightsVector)
+        self.biases = np.array(self.biases)
 
     def activationValue(self , input):
-        activeValues = []
+        input = np.array(input).reshape((-1))
         
-        for neuron in self.neurons:
-            activation_value = max(0,neuron.weightedSum(input))
-            activeValues.append(activation_value)
+        weightedSum = np.dot(self.weightsVector, input)+self.biases
+        activation_value = [max(0,val) for val in weightedSum]
 
-        return activeValues
+        return activation_value
 
     
 
@@ -44,6 +48,7 @@ class model:
         self.layers = []
 
     def add(self , layer):
+        
         if layer in self.layers:
             print("already added")
             return
@@ -63,21 +68,28 @@ class model:
             self.layers.append(layer)
 
 
-    def fit(self,inputs):
+    def fit(self,X,y, epochs = 5):
 
         if len(self.layers) == 0:
             return "no layers"
         
         activation_for_each_input = []
 
-        for input in inputs:
+        for input in X:
             activation_value = input
             for layer in self.layers:
                 activation_value = layer.activationValue(activation_value)
+                print(activation_value)
 
             activation_for_each_input.append(activation_value)
-
         return activation_for_each_input
+    
+    def Loss(self , values , targets):
+        loss = 0
+        for value,target in zip(values,targets):
+            loss += (value-target)**2
+        
+        return loss
     
 m = model()
 layer1 = layer(20,10)
@@ -88,7 +100,7 @@ m.add(layer1)
 m.add(layer2)
 m.add(layer3)
 
-ans = m.fit([[1,2,3,4,5,6,7,8,9,0],[0,9,1,2,3,4,5,6,7,8]])
+ans = m.fit([[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0]],[0,0,0,1,0,0,0,0,0,0])
 
 print(ans)
 

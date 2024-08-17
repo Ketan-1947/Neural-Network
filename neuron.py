@@ -1,21 +1,19 @@
 import numpy as np
+import math
 import random
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import OneHotEncoder,normalize
 
 class neuron:
     def __init__(self , n):
-        self.weights = [random.uniform(-1,1) for i in range(n)]
-        self.bias = 0
-    
-    def modifyParams(self, weights , bias):
-        self.weights = weights
-        self.bias = bias
+        self.weights = np.random.randn(n) * 0.01  # Small random values
+        self.bias = 0.0 
     
 class layer:
     def __init__(self, n_neurons , input_size = 0):
         self.neurons =[]
         self.weightsVector = []
         self.biases = []
-
         self.neuron_count = n_neurons
         self.inputSize = input_size
 
@@ -36,18 +34,16 @@ class layer:
     def activationValue(self , input):
         input = np.array(input).reshape((-1))
         
-        weightedSum = np.dot(self.weightsVector, input)+self.biases
-        activation_value = np.maximum(0,weightedSum)
+        weighted_sum = np.dot(self.weightsVector, input)+self.biases
+        activationValue = np.maximum(0,weighted_sum)
 
-        return activation_value
+        return (weighted_sum , activationValue)
 
     
 
 class model:
     def __init__(self):
         self.layers = []
-        self.activation_for_each_input = []
-        self.losses_for_each_input = []
 
     def add(self , layer):
         
@@ -75,32 +71,85 @@ class model:
         if len(self.layers) == 0:
             return "no layers"
 
+        for i in range(epochs):
+            for input,output in zip(X,y):
+                activation_value = input
+                weighted_sums = []
+                activation_values = []
+                inputs = []
+                for layer in self.layers:
+                    inputs.append(activation_value)
+                    weighted_sum , activation_value = layer.activationValue(activation_value)
+                    weighted_sums.append(weighted_sum)
+                    activation_values.append(activation_value)
+
+                self.backProp(weighted_sums , activation_values , inputs ,output)
+            
+
+    
+    def backProp(self , z_i , a_i , inputs, target):
+        learnRate = 0.01
+        z_i = z_i[::-1]
+        a_i =  a_i[::-1]
+        layers =  self.layers[::-1]
+        inputs =  inputs[::-1]
+        delta = 0
+
+        for z,a,layer,input in zip(z_i , a_i , layers , inputs):
+            if type(delta) == int:
+                delta =  2*np.array(a)-np.array(target)
+                relu_derivative = np.where(z > 0, 1, 0)
+                delta *= relu_derivative
+            
+
+            gradient_w = np.outer(delta, input)
+            gradient_b = delta
+
+            # updating weights and biases
+            layer.weightsVector -= learnRate * gradient_w
+            layer.biases -= learnRate * gradient_b
+
+            delta = np.dot(layer.weightsVector.T, delta)
+
+
+    def predict(self, X):
+        if(len(X.shape) != 2):
+            return "Improper shape"
+        predictions = []
         for input in X:
             activation_value = input
             for layer in self.layers:
-                activation_value = layer.activationValue(activation_value)
-                # print(activation_value)
+                w ,activation_value = layer.activationValue(activation_value)
+            predictions.append(activation_value)
 
-            self.activation_for_each_input.append(activation_value)
-            self.losses_for_each_input.append(self.Cost(activation_value , y))
-        
-        return self.activation_for_each_input
-    
-    def Cost(self , values , targets):
-        loss = np.mean((values-targets)**2)
-        
-        return loss
+        return predictions
+            
+
+
     
 m = model()
-layer1 = layer(20,10)
-layer2 = layer(10)
-layer3 = layer(5)
+layer1 = layer(16 , 784)
+layer2 = layer(16)
+layer3 = layer(10)
 
 m.add(layer1)
 m.add(layer2)
 m.add(layer3)
 
-ans = m.fit(np.random.random(size = (30,10)),[0,0,0,1,0])
-loss = m.losses_for_each_input
-print(len(loss))
+data = np.load("mnist.npy")
+X,y = data[: , 1:] , data[:,0].reshape(-1,1)
+X = normalize(X)
+
+encoder = OneHotEncoder(sparse_output = False)
+y = encoder.fit_transform(y)
+
+X_train , y_train , X_test , y_test = X[:17000] , y[:17000] , X[17000:] , y[17000:]
+
+m.fit(X_train,y_train ,epochs=10)
+
+preds = m.predict(X_test[0:20])
+for pred in preds:
+    print(np.argmax(pred))
+
+print([np.argmax(np.array(i)) for i in y_test[0:20]])
 

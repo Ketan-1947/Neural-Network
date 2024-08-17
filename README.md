@@ -5,7 +5,7 @@ In this i will explain all my thoughts by relating them to a model trained to cl
 
 <h4>current understanding:</h4>a neural network is a combination or layers made of neurons, these layers can be arranged in a sequential manner i.e one after another.
 
-<p></p>How does it work? well look at it as many different layers of switches and a combination of some switches turned on in a layer guides the next layers switches to turn on and so on, as a result in the output layer the correct switch shall to give desired output turn on if it makes sense. 
+<p></p>git commitHow does it work? well look at it as many different layers of switches and a combination of some switches turned on in a layer guides the next layers switches to turn on and so on, as a result in the output layer the correct switch shall to give desired output turn on if it makes sense. 
 <p></p>we use a bias value which tells us if turning on that switch will make a difference or not in the context of image classification bias will tell if the pixels marked important by this neuron are worth considering or not.
 <p></p>Now instead of having only on and off values that are 0 and 1 out activation value can be anything thus an activation function is required to convert it into sizable value, for making it easy to learn i am going to use ReLU function which is max(0,val) meaning if value is negative it is converted into 0 and if it is positive it remains unchanged.
 <h4>What exactly is a artificial neuron, weights and biases:</h4>

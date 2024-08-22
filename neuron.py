@@ -128,7 +128,7 @@ class model:
 
     
 m = model()
-layer1 = layer(16 , 784)
+layer1 = layer(20 , 784)
 layer2 = layer(16)
 layer3 = layer(10)
 
